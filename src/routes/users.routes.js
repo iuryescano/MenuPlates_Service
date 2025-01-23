@@ -7,9 +7,9 @@ const usersRouter = Router();
 function myMiddleware(request, response, next) {
   console.log("Voce passou pelo middleware") ;
 
-  if (!request.body.isAdmin) {
-    return response.status(401).json({ error: "Usuario nao autenticado" });
-  } 
+ // if (!request.body.isAdmin) {
+ //   return response.status(401).json({ error: "Usuario nao autenticado" });
+ // } 
 
   next();
 }
