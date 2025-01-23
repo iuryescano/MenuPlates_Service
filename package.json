@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Api desenvolvida para o MenuPlates",
+  "description": "Api desenvolvida por Iury Escano Cordeiro, com intuito de ser um modelo para futuros projetos",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.21.2",
