@@ -1,0 +1,1 @@
+<h2> My project is a simple API to manage a restaurant's menu. It allows you to create, update, delete and list plates, as well as create and list users. It was built using Node.js, Express, Knex and SQLite </h2>
