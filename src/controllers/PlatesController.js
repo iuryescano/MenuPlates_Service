@@ -34,6 +34,26 @@ class PlatesController{
 
     response.json();
   }
+
+  async show(request, response){
+    const { id } = request.params;
+
+    const plate = await knex("plates").where("id", id).first();
+
+    if(!plate){
+      return response.status(400).json({ message: "Plate not found." });
+    }
+
+    const ingredients = await knex("ingredients")
+      .where("plate_id", id)
+      .select("Name");
+
+    const categories = await knex("categories")
+      .where("plate_id", id)
+      .select("Name");
+
+    return response.json({ plate, ingredients, categories });
+  }
 }
 
 module.exports = PlatesController;
