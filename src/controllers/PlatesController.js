@@ -44,15 +44,15 @@ class PlatesController{
       return response.status(400).json({ message: "Plate not found." });
     }
 
-    const ingredients = await knex("ingredients")
-      .where("plate_id", id)
-      .select("Name");
+    const ingredients = await knex("ingredients").where("plate_id", id).select("Name").orderBy("Name");
 
-    const categories = await knex("categories")
-      .where("plate_id", id)
-      .select("Name");
+    const categories = await knex("categories").where("plate_id", id).select("Name").orderBy("Name");
 
-    return response.json({ plate, ingredients, categories });
+    return response.json({ 
+      ...plate, 
+      ingredients, 
+      categories 
+    });
   }
 }
 
