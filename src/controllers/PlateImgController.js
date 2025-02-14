@@ -5,7 +5,6 @@ const DiskStorage = require('../providers/DiskStorage');
 class PlateImgController {
   async update(request, response) {
     const user_id = request.user.id;
-    const { id: plate_id } = request.params; // Obtendo o ID do prato dos parâmetros da URL
     const plateFilename = request.file.filename;
 
     const diskStorage = new DiskStorage();
@@ -16,7 +15,8 @@ class PlateImgController {
       throw new AppError("Somente usuários autenticados podem mudar a foto do prato", 401);
     }
 
-    const plate = await knex("plates").where({ id: plate_id }).first();
+    // Obtendo o prato associado ao usuário
+    const plate = await knex("plates").where({ user_id }).first();
 
     if (!plate) {
       throw new AppError("Prato não encontrado", 404);
@@ -29,7 +29,7 @@ class PlateImgController {
     const filename = await diskStorage.saveFile(plateFilename);
     plate.Image = filename;
 
-    await knex("plates").update({ Image: plate.Image }).where({ id: plate_id });
+    await knex("plates").update({ Image: plate.Image }).where({ id: plate.id });
 
     return response.json(plate);
   }

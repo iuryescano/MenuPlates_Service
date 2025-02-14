@@ -16,7 +16,7 @@ platesRouter.get("/", platesController.index);
 platesRouter.post("/:user_id", platesController.create);
 platesRouter.get("/:id", platesController.show);
 platesRouter.delete("/:id", platesController.delete);
-platesRouter.patch("/:id/image", ensureAuthenticated, upload.single("plateimage"), plateImgController.update);
-
+// Atualizando a rota para não exigir o ID do prato na URL
+platesRouter.patch("/image", ensureAuthenticated, upload.single("plateimage"), plateImgController.update);
 
 module.exports = platesRouter; // Export app for testing
