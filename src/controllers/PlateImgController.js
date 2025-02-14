@@ -15,8 +15,11 @@ class PlateImgController {
       throw new AppError("Somente usuários autenticados podem mudar a foto do prato", 401);
     }
 
-    // Obtendo o prato associado ao usuário
-    const plate = await knex("plates").where({ user_id }).first();
+    // Obtendo o prato mais recente associado ao usuário
+    const plate = await knex("plates")
+      .where({ user_id })
+      .orderBy('created_at', 'desc')
+      .first();
 
     if (!plate) {
       throw new AppError("Prato não encontrado", 404);
