@@ -14,7 +14,7 @@ const plateImgController = new PlateImgController();
 
 platesRouter.get("/", platesController.index);
 platesRouter.post("/:user_id", platesController.create);
-platesRouter.get("/:id", platesController.show);
+platesRouter.get("/", platesController.show);
 platesRouter.delete("/:id", platesController.delete);
 // Atualizando a rota para não exigir o ID do prato na URL
 platesRouter.patch("/image", ensureAuthenticated, upload.single("plateimage"), plateImgController.update);
