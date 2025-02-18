@@ -133,6 +133,48 @@ class PlatesController{
       return response.json(platesWithIngredients);
     }
   }
+
+  async update(request, response) {
+    const { id } = request.params;
+    const { Name, Image, Price, Description, category, ingredients } = request.body;
+
+    const plate = await knex("plates").where("id", id).first();
+
+    if (!plate) {
+      return response.status(400).json({ message: "Plate not found." });
+    }
+
+    await knex("plates").where("id", id).update({
+      Name,
+      Image,
+      Price,
+      Description
+    });
+
+    if (category) {
+      await knex("categories").where("plate_id", id).delete();
+      const categoryInsert = category.map(catName => {
+        return {
+          plate_id: id,
+          Name: catName
+        };
+      });
+      await knex("categories").insert(categoryInsert);
+    }
+
+    if (ingredients) {
+      await knex("ingredients").where("plate_id", id).delete();
+      const ingredientInsert = ingredients.map(ingName => {
+        return {
+          plate_id: id,
+          Name: ingName
+        };
+      });
+      await knex("ingredients").insert(ingredientInsert);
+    }
+
+    return response.json();
+  }
 }
 
 module.exports = PlatesController;
