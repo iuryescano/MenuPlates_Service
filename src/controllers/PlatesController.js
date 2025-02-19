@@ -69,70 +69,72 @@ class PlatesController{
 
   async index(request, response) {
     const { name, category, ingredients } = request.query;
-
     let plates;
 
-    if (category) {
-      if (ingredients) {
-        const filterIngredients = ingredients.split(',').map(ingredient => ingredient.trim());
+    // Se algum filtro for enviado, construa a query dinamicamente
+    if (name || category || ingredients) {
+      let query = knex("plates").select(
+        "plates.id",
+        "plates.Name",
+        "plates.user_id",
+        "plates.Description",
+        "plates.Image",
+        "plates.Price"
+      );
 
-        plates = await knex("ingredients")
-          .select([
-            "plates.id",
-            "plates.Name",
-            "plates.user_id",
-            "plates.Description",
-            "plates.Image",
-            "plates.Price"
-          ])
-          .whereLike("plates.Name", `%${name || ''}%`)
-          .whereIn("ingredients.Name", filterIngredients)
-          .innerJoin("plates", "plates.id", "ingredients.plate_id")
+      // Se category for fornecida, faça o join com categories e filtre
+      if (category) {
+        query = query
           .innerJoin("categories", "plates.id", "categories.plate_id")
-          .where("categories.Name", category)
-          .groupBy("plates.id");
-
-      } else {
-        plates = await knex("plates")
-          .select([
-            "plates.id",
-            "plates.Name",
-            "plates.user_id",
-            "plates.Description",
-            "plates.Image",
-            "plates.Price"
-          ])
-          .whereLike("plates.Name", `%${name || ''}%`)
-          .innerJoin("categories", "plates.id", "categories.plate_id")
-          .where("categories.Name", category)
-          .orderBy("plates.Name");
+          .where("categories.Name", "like", `%${category}%`);
       }
 
-      const allIngredients = await knex("ingredients").whereIn("plate_id", plates.map(plate => plate.id));
-      const platesWithIngredients = plates.map(plate => {
-        const plateIngredients = allIngredients.filter(ingredient => ingredient.plate_id === plate.id);
-        return {
-          ...plate,
-          ingredients: plateIngredients.map(ingredient => ingredient.Name)
-        };
-      });
+      // Se ingredients for fornecido, faça o join com ingredients e filtre
+      if (ingredients) {
+        // Separa os ingredientes (caso venha uma lista separada por vírgulas)
+        const filterIngredients = ingredients.split(',').map(ing => ing.trim());
+        query = query
+          .leftJoin("ingredients", "plates.id", "ingredients.plate_id")
+          .modify(q => {
+            // Se for apenas um ingrediente, faz um filtro parcial com LIKE
+            if (filterIngredients.length === 1) {
+              q.where("ingredients.Name", "like", `%${filterIngredients[0]}%`);
+            } else {
+              // Se forem vários, pode usar whereIn (ou ainda usar várias condições LIKE se desejar uma busca parcial em cada um)
+              q.whereIn("ingredients.Name", filterIngredients);
+            }
+          });
+      }
 
-      return response.json(platesWithIngredients);
+      // Se name for fornecido, filtra pelo nome do prato
+      if (name) {
+        query = query.where("plates.Name", "like", `%${name}%`);
+      }
+
+      // Para evitar duplicação de registros devido aos joins, agrupe pelo ID do prato
+      query = query.groupBy("plates.id");
+
+      plates = await query;
     } else {
+      // Se nenhum filtro for enviado, retorna todos os pratos
       plates = await knex("plates").select("*");
-
-      const allIngredients = await knex("ingredients").whereIn("plate_id", plates.map(plate => plate.id));
-      const platesWithIngredients = plates.map(plate => {
-        const plateIngredients = allIngredients.filter(ingredient => ingredient.plate_id === plate.id);
-        return {
-          ...plate,
-          ingredients: plateIngredients.map(ingredient => ingredient.Name)
-        };
-      });
-
-      return response.json(platesWithIngredients);
     }
+
+    // Recupera os ingredientes para cada prato
+    const allIngredients = await knex("ingredients")
+      .whereIn("plate_id", plates.map(plate => plate.id));
+
+    const platesWithIngredients = plates.map(plate => {
+      const plateIngredients = allIngredients.filter(ing => ing.plate_id === plate.id);
+      return {
+        ...plate,
+        ingredients: plateIngredients.map(ing => ing.Name)
+      };
+    });
+
+    return response.json(platesWithIngredients);
   }
+  
 
   async update(request, response) {
     const { id } = request.params;
