@@ -22,7 +22,7 @@ class SessionsController {
     }
     
     const { secret, expiresIn } = authConfig.jwt; //pegando o secret e o tempo de expiração do arquivo auth.js
-    const token = sign({}, secret, { //criando o token de fato
+    const token = sign({ role: user.role }, secret, { //criando o token de fato
       subject: String(user.id), //id do usuario
       expiresIn //tempo de expiração do token
     });
